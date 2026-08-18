@@ -1,0 +1,36 @@
+{
+    "default_mode": "manual",
+    "camera": {
+        "width": 1280,
+        "height": 720,
+        "device_id": 0
+    },
+    "line_settings": {
+        "color": [0, 140, 255],
+        "thickness": 5
+    },
+    "overlay": {
+        "inner_circle_path": "Models/inner_circles/orange.png",
+        "outer_circle_path": "Models/outer_circles/orange.png",
+        "alt_inner_circle_path": "Models/inner_circles/blue.png",
+        "alt_outer_circle_path": "Models/outer_circles/dark_red.png",
+        "rotation_degree_increment": 2,
+        "shield_size_multiplier": 3.0
+    },
+    "pinch": {
+        "min_pinch": 20,
+        "max_pinch": 150,
+        "min_size": 80,
+        "max_size": 400
+    },
+    "animation": {
+        "ease_factor": 0.2
+    },
+    "spark": {
+        "trail_length": 15
+    },
+    "keybindings": {
+        "quit_key": "q"
+    }
+}
+
