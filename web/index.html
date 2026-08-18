@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Doctor Strange Eldritch Filter | Mystic Arts Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- MediaPipe dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Camera feed (hidden directly, rendered mirrored to canvas) -->
+    <video id="webcam" playsinline muted></video>
+
+    <!-- Main Render Canvas -->
+    <canvas id="render-canvas"></canvas>
+
+    <!-- Ambient Spell Glow Background Overlay -->
+    <div id="ambient-glow" class="ambient-glow"></div>
+
+    <!-- Top HUD Navigation Bar -->
+    <header class="hud-top">
+      <div class="brand">
+        <div class="sorcerer-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2" stroke-dasharray="2 1" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="title">DOCTOR STRANGE</span>
+          <span class="subtitle">MYSTIC ARTS FILTER</span>
+        </div>
+      </div>
+
+      <div class="status-group">
+        <div id="status-badge" class="badge badge-auto">
+          <span class="pulse-dot"></span>
+          <span id="mode-text">AUTO GESTURE</span>
+        </div>
+        <div id="gesture-pill" class="badge badge-gesture">
+          <span class="gesture-icon">🖐️</span>
+          <span id="gesture-text">READY</span>
+        </div>
+        <div class="badge badge-fps">
+          <span id="fps-counter">60</span> FPS
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Action / Overlay Message -->
+    <div id="spell-toast" class="spell-toast">
+      <span id="toast-text">ELDRITCH SHIELD ACTIVATED</span>
+    </div>
+
+    <!-- Floating Mystic Control Panel (Left Side) -->
+    <aside class="control-panel">
+      <div class="panel-section">
+        <h3 class="section-title">SPELL PRESETS</h3>
+        <div class="presets-grid">
+          <button class="preset-btn active" data-preset="1" id="preset-1" title="Eldritch Orange [Key 1]">
+            <span class="color-dot dot-orange"></span>
+            <span class="btn-label">Eldritch</span>
+          </button>
+          <button class="preset-btn" data-preset="2" id="preset-2" title="Mystic Crimson [Key 2]">
+            <span class="color-dot dot-red"></span>
+            <span class="btn-label">Crimson</span>
+          </button>
+          <button class="preset-btn" data-preset="3" id="preset-3" title="Astral Azure [Key 3]">
+            <span class="color-dot dot-blue"></span>
+            <span class="btn-label">Astral</span>
+          </button>
+          <button class="preset-btn" data-preset="4" id="preset-4" title="Time Stone Emerald [Key 4]">
+            <span class="color-dot dot-green"></span>
+            <span class="btn-label">Time Stone</span>
+          </button>
+          <button class="preset-btn" data-preset="5" id="preset-5" title="Quantum Amethyst [Key 5]">
+            <span class="color-dot dot-purple"></span>
+            <span class="btn-label">Amethyst</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="section-title">CONTROL MODE</h3>
+        <div class="toggle-group">
+          <button id="btn-mode-auto" class="mode-toggle-btn active">🖐️ Camera Hand</button>
+          <button id="btn-mode-manual" class="mode-toggle-btn">🖱️ Mouse / Touch</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="section-title">SPELL DYNAMICS</h3>
+        <div class="slider-row">
+          <label for="slider-size">Shield Scale</label>
+          <input type="range" id="slider-size" min="0.6" max="2.0" step="0.1" value="1.0">
+          <span id="val-size" class="slider-val">1.0x</span>
+        </div>
+        <div class="slider-row">
+          <label for="slider-speed">Rotation</label>
+          <input type="range" id="slider-speed" min="0.5" max="4.0" step="0.5" value="2.5">
+          <span id="val-speed" class="slider-val">2.5°</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3 class="section-title">MYSTIC FX</h3>
+        <div class="fx-buttons">
+          <button id="btn-sparks" class="fx-btn active" title="Toggle Sparks (S)">
+            <span>✨</span> Sparks
+          </button>
+          <button id="btn-audio" class="fx-btn active" title="Toggle Mystical Audio (A)">
+            <span id="audio-icon">🔊</span> Mystic Sound
+          </button>
+          <button id="btn-snap" class="fx-btn highlight" title="Capture Spell Photo">
+            <span>📸</span> Snapshot
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bottom Controls & Keybindings Helper -->
+    <footer class="hud-bottom">
+      <div class="keyboard-hints">
+        <span class="hint-key"><kbd>M</kbd> Switch Mode</span>
+        <span class="hint-key"><kbd>1-5</kbd> Presets</span>
+        <span class="hint-key"><kbd>Space</kbd> / <kbd>Click</kbd> Cast Shield</span>
+        <span class="hint-key"><kbd>S</kbd> Sparks</span>
+        <span class="hint-key"><kbd>A</kbd> Sound</span>
+        <span class="hint-key"><kbd>H</kbd> Hide UI</span>
+      </div>
+      <button id="btn-hide-ui" class="btn-icon" title="Toggle HUD (H)">👁️</button>
+    </footer>
+
+    <!-- Camera Permission Overlay Modal -->
+    <div id="camera-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-rune">✧</div>
+        <h2>Sanctum Sanctorum Access</h2>
+        <p>Allow camera access to weave spells using hand tracking in real-time.</p>
+        <div class="modal-buttons">
+          <button id="btn-grant-camera" class="btn-primary">Grant Camera Access</button>
+          <button id="btn-use-mouse" class="btn-secondary">Use Mouse / Touch Only</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
