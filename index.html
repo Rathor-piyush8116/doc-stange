@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=web/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Strange Filter - Launching...</title>
+  <script>
+    window.location.replace("web/" + window.location.search + window.location.hash);
+  </script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #ff9900;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 153, 0, 0.2);
+      border-top-color: #ff9900;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    a {
+      color: #ffb74d;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="loader"></div>
+  <h2>Opening Doctor Strange Magic Shield Filter...</h2>
+  <p>If you are not redirected automatically, <a href="web/">click here to launch</a>.</p>
+</body>
+</html>
