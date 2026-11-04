@@ -3,46 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doctor Strange Hand Gesture Filter</title>
+  <title>Doctor Strange Mystic Portal | Sling Ring Gesture Controller</title>
+  <meta name="description" content="Cast Doctor Strange's sling ring and mystic portals with real-time hand tracking powered by MediaPipe Tasks-Vision and Canvas 2D.">
+
+  <!-- Cinematic Marvel / Kamar-Taj Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
-  
-  <!-- MediaPipe dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Camera feed (mirrored to canvas) -->
-    <video id="webcam" playsinline muted></video>
+  <div class="app-container" id="app-container">
+    <!-- Mirrored Webcam Video Feed (Rendered directly into mirrored Canvas) -->
+    <video id="webcam" playsinline muted autoplay></video>
 
-    <!-- Main Fullscreen Canvas -->
+    <!-- Fullscreen High-Performance 60fps Canvas -->
     <canvas id="render-canvas"></canvas>
 
-    <!-- Ambient Spell Glow -->
+    <!-- Ambient Spell Edge Glow -->
     <div id="ambient-glow" class="ambient-glow"></div>
 
-    <!-- Minimalist Status Indicator -->
-    <div class="hud-status">
-      <div class="status-badge">
-        <span class="pulse-dot"></span>
-        <span id="gesture-text">MANUAL MODE (Eldritch Orange)</span>
+    <!-- HUD Top Navigation & Telemetry -->
+    <header class="hud-top">
+      <div class="status-group">
+        <div class="status-badge" id="status-badge">
+          <span class="pulse-dot"></span>
+          <span id="gesture-text">INITIALIZING MYSTIC ARTS...</span>
+        </div>
+
+        <!-- Real-time Gesture & Orientation Badges -->
+        <div class="telemetry-badges" id="telemetry-badges">
+          <span class="badge-tag tag-gesture" id="gesture-badge-label" title="Stable 5-frame finger gesture">IDLE</span>
+          <span class="badge-tag tag-orange" id="orientation-badge-label" title="Hand orientation (3D cross product)">PALM</span>
+        </div>
+      </div>
+
+      <div class="hud-top-right">
+        <span class="fps-tag" id="fps-counter">60 FPS</span>
+        <button id="debug-toggle" class="hud-btn" title="Toggle hand landmarks skeleton (D)" aria-pressed="false">
+          <span class="btn-icon">📐</span>
+          <span class="btn-label">DEBUG</span>
+        </button>
+        <button id="audio-toggle" class="hud-btn" title="Toggle sound effects (M)">
+          🔊 SOUND ON
+        </button>
+      </div>
+    </header>
+
+    <!-- Bottom HUD Controls & Color Mode Switcher -->
+    <footer class="hud-bottom">
+      <div class="color-mode-bar">
+        <span class="bar-label">SPELL COLOR:</span>
+        <div class="color-mode-selector" id="color-mode-selector" role="radiogroup" aria-label="Portal Spell Color Mode">
+          <button class="color-mode-btn active" data-colormode="auto" title="Turn hand: Palm=Orange, Back=Blue (Key O)">
+            <span class="mode-dot dynamic-dot"></span>
+            <span>AUTO (TURN HAND)</span>
+          </button>
+          <button class="color-mode-btn" data-colormode="fixed-orange" title="Keep classic fiery orange-gold">
+            <span class="mode-dot orange-dot"></span>
+            <span>FIXED ORANGE</span>
+          </button>
+          <button class="color-mode-btn" data-colormode="fixed-blue" title="Keep glowing cyan-blue astral magic">
+            <span class="mode-dot blue-dot"></span>
+            <span>FIXED BLUE</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hud-hints">
+        <span class="hint-item"><kbd>☝️ Point</kbd> Draw Spark Circle</span>
+        <span class="hint-item"><kbd>✌️ Peace</kbd> Orbiting Ring</span>
+        <span class="hint-item"><kbd>🤏 Pinch</kbd> Grab &amp; Move Ring</span>
+        <span class="hint-item"><kbd>🤟 3 Fingers</kbd> Toggle Runes</span>
+        <span class="hint-item"><kbd>💨 Flick</kbd> Shoot Sparks</span>
+        <span class="hint-item"><kbd>🔄 Turn Hand</kbd> Orange ↔ Blue</span>
+        <span class="hint-item"><kbd>✊ Fist</kbd> Collapse</span>
+      </div>
+    </footer>
+
+    <!-- Initial Start Screen Overlay -->
+    <div class="start-overlay" id="start-overlay">
+      <div class="start-card">
+        <div class="seal-emblem">
+          <svg viewBox="0 0 100 100" class="emblem-svg">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+            <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" stroke-width="1"/>
+            <polygon points="50,14 79,78 19,39 81,39 21,78" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <circle cx="50" cy="50" r="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="50" cy="50" r="4" fill="currentColor"/>
+          </svg>
+        </div>
+
+        <h1 class="portal-title">DOCTOR STRANGE</h1>
+        <p class="portal-subtitle">SLING RING &amp; MYSTIC PORTAL FILTER</p>
+
+        <div class="instructions-grid">
+          <div class="gesture-card">
+            <span class="g-icon">✋</span>
+            <h4>Open Palm</h4>
+            <p>Ring locks to palm center</p>
+          </div>
+          <div class="gesture-card highlight-cyan">
+            <span class="g-icon">🔄</span>
+            <h4>Turn Hand</h4>
+            <p>Palm=Orange, Back=Cyan Blue</p>
+          </div>
+          <div class="gesture-card">
+            <span class="g-icon">☝️</span>
+            <h4>Point (Index)</h4>
+            <p>Draw spark loop to ignite portal</p>
+          </div>
+          <div class="gesture-card highlight-gold">
+            <span class="g-icon">✌️</span>
+            <h4>Peace Sign</h4>
+            <p>Spawns 2nd orbiting mini-ring</p>
+          </div>
+          <div class="gesture-card">
+            <span class="g-icon">🤏</span>
+            <h4>Pinch Grab</h4>
+            <p>Grab ring to stick &amp; drag</p>
+          </div>
+          <div class="gesture-card">
+            <span class="g-icon">🤟</span>
+            <h4>Three Fingers</h4>
+            <p>Toggle runic mandala symbols</p>
+          </div>
+          <div class="gesture-card">
+            <span class="g-icon">💨</span>
+            <h4>Index Flick</h4>
+            <p>Shoot sparks in that direction</p>
+          </div>
+          <div class="gesture-card">
+            <span class="g-icon">✊</span>
+            <h4>Closed Fist</h4>
+            <p>Implosion &amp; spark collapse</p>
+          </div>
+        </div>
+
+        <div class="start-actions">
+          <button id="start-btn" class="btn-primary">
+            <span class="sparkle">✨</span>
+            SHOW YOUR HAND TO CAST
+          </button>
+          <button id="test-mode-btn" class="btn-secondary">
+            INTERACTIVE TEST MODE (NO WEBCAM)
+          </button>
+        </div>
+
+        <p class="status-tip" id="loading-status">Webcam requires localhost or HTTPS. Hand orientation &amp; 5-frame stable gestures enabled.</p>
       </div>
     </div>
 
-    <!-- Controls Helper Bar -->
-    <div class="hud-controls">
-      <div class="key-hint"><kbd>Click / Space</kbd> Toggle Shield</div>
-      <div class="key-hint"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Styles</div>
-      <div class="key-hint"><kbd>Scroll / +/-</kbd> Resize</div>
-      <div class="key-hint"><kbd>S</kbd> Sparks</div>
-      <div class="key-hint"><kbd>M</kbd> Mode</div>
+    <!-- Camera Error / Denial Modal -->
+    <div class="error-modal hidden" id="error-modal">
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h3>Camera Access Needed</h3>
+        <p id="error-text">Webcam permission was denied or not detected.</p>
+        <p class="error-subtext">To cast spells with your hand, click the camera icon in your address bar, set Camera to "Allow", and reload. Or launch Interactive Test Mode to test all gestures, color turning, and physics with mouse/keyboard right now.</p>
+        <div class="error-actions">
+          <button id="fallback-test-btn" class="btn-primary">LAUNCH INTERACTIVE TEST MODE</button>
+          <button id="close-error-btn" class="btn-secondary">BACK TO START</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Application Modules (ESM) -->
+  <script type="module" src="main.js"></script>
 </body>
 </html>
